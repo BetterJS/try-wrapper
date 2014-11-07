@@ -10,7 +10,10 @@
     "escodegen": "^1.4.1",
     "acorn": "^0.9.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "mocha": "*",
+    "should": "^4.2.1"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
