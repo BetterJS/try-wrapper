@@ -10,6 +10,18 @@ function shouldEqual(caseName, opt) {
   );
 }
 
+function nameFilter(name) {
+  var matchs = {
+    'setTimeout': true,
+    'setInterval': true,
+    'jQuery.ajax': true,
+    '$.ajax': true,
+    'require': true,
+    'define': true
+  }
+  return matchs[name];
+}
+
 describe('try-wrapper', function () {
   it('should able to wrap a function', function () {
     shouldEqual('namedFunction');
@@ -29,5 +41,12 @@ describe('try-wrapper', function () {
 
   it('should able to wrap a function which in another function', function () {
     shouldEqual('insideFunction');
-  })
+  });
+
+  it('should able to filter out unnecessary fucntions', function () {
+    shouldEqual('timeoutFunction', { nameFilter: nameFilter });
+    shouldEqual('jQueryAjax', { nameFilter: nameFilter });
+    shouldEqual('unnecessary', { nameFilter: nameFilter });
+    shouldEqual('unnecessary2', { nameFilter: nameFilter });
+  });
 });

@@ -40,17 +40,62 @@ function _parse(str) {
   };
 }
 
+function _getCalleeName(node) {
+  if (node.type === 'MemberExpression') {
+    var name;
+    walk.simple(node, {
+      'MemberExpression': function (node) {
+        if (!name) name = node.object.name;
+        name += '.' + node.property.name;
+      }
+    })
+    return name;
+  } else if (node.type === 'Identifier') {
+    return node.name;
+  }
+}
+
+function _check(ancestors, nameFilter) {
+  var i = ancestors.length - 2;
+  switch (ancestors[i].type) {
+    /* 
+     * a({ 
+     *    b: function () {
+     *     // for this type function  
+     *    } 
+     * });
+     */
+    case 'Property':
+      if (
+        ancestors[--i].type === 'ObjectExpression' &&
+          ancestors[--i].type === 'CallExpression'
+      ) {
+        return nameFilter(_getCalleeName(ancestors[i].callee));
+      }
+      break;
+    /* 
+     * a(function () {
+     *   // for this type function  
+     * });
+     */
+    case 'CallExpression':
+      return nameFilter(_getCalleeName(ancestors[i].callee));
+  }
+  return true;
+}
+
 module.exports = function (code, opt) {
   opt = opt || {};
-  var ast, comments = [];
+  var ast, nameFilter = opt.nameFilter || function () {return true;};
   try {
     ast = acorn.parse(code);
   } catch(e) {
     return;
   }
-  walk.simple(ast, {
+  walk.ancestor(ast, {
     // for FunctionDeclaration & FunctionExpression
-    Function: function (node) {
+    Function: function (node, ancestors) {
+      if (node.type === 'FunctionExpression' && nameFilter && !_check(ancestors, nameFilter)) return;
       var body = node.body;
       node.body = {
         type: 'BlockStatement',
@@ -77,7 +122,7 @@ module.exports = function (code, opt) {
       };
     }
   });
-  
+
   return escodegen.generate(ast, {
     format: {
       indent: {
