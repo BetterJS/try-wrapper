@@ -49,4 +49,8 @@ describe('try-wrapper', function () {
     shouldEqual('unnecessary', { nameFilter: nameFilter });
     shouldEqual('unnecessary2', { nameFilter: nameFilter });
   });
+
+  it('should able to ignore function declaration', function () {
+    shouldEqual('ignoreDelcaration', { ignoreDelcaration: true });
+  })
 });

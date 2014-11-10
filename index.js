@@ -86,7 +86,8 @@ function _check(ancestors, nameFilter) {
 
 module.exports = function (code, opt) {
   opt = opt || {};
-  var ast, nameFilter = opt.nameFilter || function () {return true;};
+  var ast, nameFilter = opt.nameFilter || null
+    , ignoreDelcaration = opt.ignoreDelcaration || false;
   try {
     ast = acorn.parse(code);
   } catch(e) {
@@ -96,6 +97,7 @@ module.exports = function (code, opt) {
     // for FunctionDeclaration & FunctionExpression
     Function: function (node, ancestors) {
       if (node.type === 'FunctionExpression' && nameFilter && !_check(ancestors, nameFilter)) return;
+      if (node.type === 'FunctionDeclaration' && ignoreDelcaration) return;
       var body = node.body;
       node.body = {
         type: 'BlockStatement',
